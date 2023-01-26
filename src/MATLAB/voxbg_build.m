@@ -49,27 +49,46 @@ end
 
 %-Reslice t1w, t2w & aparc+aseg to match mask.
 d = '_acpc_dc_restore_brain.nii';
-t1w   = hb_gunzip(fullfile(G.f.T1w,['T1w',d]),G.f.T1w_save);
-t2w   = hb_gunzip(fullfile(G.f.T1w,['T2w',d]),G.f.T1w_save);
-apas  = hb_gunzip(fullfile(G.f.T1w,'aparc+aseg.nii'),G.f.T1w_save);
 
+t1w = hb_gunzip(fullfile(G.f.T1w,['T1w',d]),G.f.T1w_save);
 delete(t1w);
-delete(t2w);
-delete(apas);
+
+if isfield(opts,'get_t2w')
+    if opts.get_t2w
+        t2w   = hb_gunzip(fullfile(G.f.T1w,['T2w',d]),G.f.T1w_save);
+        delete(t2w);
+    end
+end
+if isfield(opts,'get_apas')
+    if opts.get_apas
+        apas  = hb_gunzip(fullfile(G.f.T1w,'aparc+aseg.nii'),G.f.T1w_save);
+        delete(apas);
+    end
+end
 
 switch G.tissue
     case 'wm'
         t1wg  = hb_reslice_vol(t1w,G.f.mask,1,G.f.t1w_graphspace);
-        t2wg  = hb_reslice_vol(t2w,G.f.mask,1,G.f.t2w_graphspace);
-        apasg = hb_reslice_vol(apas,G.f.mask,0,G.f.aparcaseg_graphspace);
-        
         gzip(t1wg);
-        gzip(t2wg);
-        gzip(apasg);
-        
         delete(t1wg);
-        delete(t2wg);
-        delete(apasg);
+        
+        if isfield(opts,'get_t2w')
+            if opts.get_t2w
+                
+                t2wg  = hb_reslice_vol(t2w,G.f.mask,1,G.f.t2w_graphspace);
+                gzip(t2wg);
+                delete(t2wg);
+            end
+        end
+        
+        if isfield(opts,'get_apas')
+            if opts.get_apas
+                apasg = hb_reslice_vol(apas,G.f.mask,0,G.f.aparcaseg_graphspace);
+                gzip(apasg);
+                delete(apasg);
+            end
+        end
+        
     case {'gmlh','gmrh'}
         % t1w, t2w, and apas already in graph space.
 end
